@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ManualCorrect demo chat</title>
+    <link rel="stylesheet" href="/src/demo/demo.css" />
+  </head>
+  <body>
+    <main class="chat">
+      <header class="chat__header">
+        <div class="avatar" aria-hidden="true">S</div>
+        <div>
+          <h1>Sam</h1>
+          <p class="status">online · demo chat, fully offline</p>
+        </div>
+      </header>
+
+      <ol class="chat__log" id="log" aria-live="polite">
+        <li class="bubble bubble--them">did the package thing get sorted?</li>
+      </ol>
+
+      <form class="composer" id="composer">
+        <button type="button" class="load-demo" id="load-demo">Load demo message</button>
+        <div class="composer__row">
+          <textarea id="message" rows="1" placeholder="Type a message" aria-label="Message"></textarea>
+          <button type="submit" class="send" aria-label="Send">Send</button>
+        </div>
+        <p class="hint">Enter sends · Shift+Enter for a new line</p>
+      </form>
+    </main>
+    <script type="module" src="/src/demo/demo.ts"></script>
+  </body>
+</html>

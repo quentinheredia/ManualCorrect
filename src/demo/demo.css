@@ -1,0 +1,64 @@
+/* The demo's own styles are deliberately broad (global button, *, font rules)
+   to show none of them reach the ManualCorrect overlay. */
+* { box-sizing: border-box; letter-spacing: 0.01em; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  display: grid;
+  place-items: center;
+  background: #dfe7ef;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #22303c;
+}
+
+button { font-family: inherit; text-transform: uppercase; cursor: pointer; }
+
+.chat {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  width: min(100%, 520px);
+  height: min(100%, 760px);
+  background: #f4f7fa;
+  box-shadow: 0 20px 60px -20px rgba(20, 40, 60, 0.4);
+}
+
+@media (min-width: 560px) { .chat { border-radius: 18px; overflow: hidden; height: min(92vh, 760px); } }
+
+.chat__header { display: flex; gap: 12px; align-items: center; padding: 14px 16px; background: #1f3b57; color: #fff; }
+.chat__header h1 { margin: 0; font-size: 17px; }
+.status { margin: 0; font-size: 12px; opacity: 0.75; }
+.avatar { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #f2b84b; color: #1f3b57; font-weight: 700; }
+
+.chat__log { list-style: none; margin: 0; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+
+.bubble { max-width: 78%; padding: 9px 13px; border-radius: 16px; font-size: 15px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; animation: pop 220ms ease-out; }
+.bubble--them { align-self: flex-start; background: #fff; border-bottom-left-radius: 4px; }
+.bubble--me { align-self: flex-end; background: #2d7dd2; color: #fff; border-bottom-right-radius: 4px; }
+
+@keyframes pop { from { opacity: 0; transform: translateY(6px) scale(0.97); } }
+
+.composer { padding: 10px 12px 12px; background: #fff; border-top: 1px solid #d8e0e8; }
+.composer__row { display: flex; gap: 8px; align-items: flex-end; }
+
+textarea {
+  flex: 1;
+  resize: none;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #c7d2dd;
+  border-radius: 20px;
+  font: 15px/1.4 Georgia, serif;
+  outline: none;
+}
+textarea:focus { border-color: #2d7dd2; }
+
+.send { min-height: 42px; padding: 0 18px; border: 0; border-radius: 21px; background: #2d7dd2; color: #fff; font-weight: 700; }
+.send:hover { background: #1f66b3; }
+
+.load-demo { margin-bottom: 8px; padding: 6px 12px; border: 1px dashed #2d7dd2; border-radius: 14px; background: transparent; color: #2d7dd2; font-size: 12px; }
+
+.hint { margin: 6px 4px 0; font-size: 11px; color: #7a8a99; }
+
+@media (prefers-reduced-motion: reduce) { .bubble { animation: none; } }

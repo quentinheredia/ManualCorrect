@@ -1,0 +1,437 @@
+/* Everything lives in a shadow root. `all: initial` stops inherited host-page
+   properties (font, color, line-height, letter-spacing) leaking in. For
+   !important rules the shadow context beats the page, even page rules that
+   target the host element, so this block is the overlay's last word on the host. */
+:host {
+  all: initial !important;
+  display: block !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483647 !important;
+}
+
+.mc-root {
+  --ink: #1c1a17;
+  --ink-soft: #6b655a;
+  --paper: #fbf8f1;
+  --line: #e7dfcf;
+  --red: #e5484d;
+  --red-wash: #fde8e8;
+  --green: #2b9a4a;
+  --green-deep: #217a3a;
+  --green-wash: #e3f5e8;
+  --tile-face: #fffefb;
+  --tile-edge: #d9ceb6;
+  --tile-gap: 8px;
+  --card-width: min(92vw, 620px);
+  --card-pad: 28px;
+  --tile: clamp(48px, calc((var(--card-width) - 2 * var(--card-pad) - (var(--n, 6) - 1) * var(--tile-gap)) / var(--n, 6)), 64px);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 24px 60px -12px rgba(20, 16, 8, 0.45), 0 8px 20px -8px rgba(20, 16, 8, 0.3);
+  /* --spring / --spring-ms are set from JS (spring.ts) on this element. */
+
+  font-family: ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+.mc-root *,
+.mc-root *::before,
+.mc-root *::after {
+  box-sizing: border-box;
+}
+
+/* ---------- Backdrop and card ---------- */
+
+.mc-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(22, 19, 14, 0.58);
+  backdrop-filter: blur(4px);
+  animation: mc-fade-in 180ms ease-out;
+}
+
+.mc-backdrop.is-leaving {
+  opacity: 0;
+  transition: opacity 200ms ease-in;
+}
+
+.mc-card {
+  width: var(--card-width);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  padding: var(--card-pad);
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-card);
+  outline: none;
+  animation: mc-card-in var(--spring-ms) var(--spring) backwards;
+}
+
+.mc-backdrop.is-leaving .mc-card {
+  transform: scale(0.97) translateY(6px);
+  transition: transform 200ms ease-in;
+}
+
+.mc-card.is-solved {
+  animation: mc-pulse 700ms ease-out;
+}
+
+.mc-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.mc-title {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.mc-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.mc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--line);
+  transition: background-color 200ms, transform 300ms var(--spring);
+}
+
+.mc-dot.is-current {
+  background: var(--ink);
+}
+
+.mc-dot.is-done {
+  background: var(--green);
+  transform: scale(1.25);
+}
+
+/* ---------- The original message ---------- */
+
+.mc-message {
+  margin: 0 0 22px;
+  padding: 12px 14px;
+  max-height: 7.5em;
+  overflow: auto;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+  font-size: 15px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.mc-word {
+  border-radius: 4px;
+  transition: background-color 200ms, color 200ms;
+}
+
+.mc-word.is-pending {
+  color: var(--red);
+  text-decoration: underline wavy var(--red);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+
+.mc-word.is-current {
+  color: #fff;
+  background: var(--red);
+  padding: 1px 4px;
+  margin: 0 -1px;
+}
+
+.mc-word.is-fixed {
+  color: var(--green-deep);
+  background: var(--green-wash);
+  padding: 1px 4px;
+  margin: 0 -1px;
+  animation: mc-fade-in 300ms ease-out;
+}
+
+/* ---------- Current word ---------- */
+
+.mc-stage {
+  animation: mc-fade-in 220ms ease-out;
+}
+
+.mc-wrong {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--red);
+}
+
+.mc-wrong s {
+  text-decoration-thickness: 2.5px;
+}
+
+.mc-tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--red-wash);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mc-instruction {
+  margin: 4px 0 18px;
+  min-height: 1.45em;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.mc-card.is-solved .mc-instruction {
+  color: var(--green-deep);
+  font-weight: 700;
+}
+
+/* ---------- Tiles ---------- */
+
+.mc-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--tile-gap);
+  padding: 6px 0 10px;
+}
+
+.mc-tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--tile);
+  height: calc(var(--tile) * 1.12);
+  border: 1px solid var(--tile-edge);
+  border-bottom-width: 4px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff 0%, var(--tile-face) 60%, #f7f1e4 100%);
+  box-shadow: 0 2px 4px -1px rgba(60, 45, 20, 0.18);
+  color: var(--ink);
+  font-size: calc(var(--tile) * 0.5);
+  font-weight: 750;
+  line-height: 1;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  cursor: grab;
+}
+
+.mc-tile__letter {
+  translate: 0 -1px;
+}
+
+.mc-tile--slot {
+  animation: mc-deal 420ms cubic-bezier(0.2, 0.9, 0.3, 1.25) backwards;
+  animation-delay: calc(var(--i) * 32ms);
+  transition: box-shadow 150ms, translate 150ms, background-color 160ms, border-color 160ms, color 160ms;
+}
+
+/* `translate` composes with dnd-kit's inline `transform`, so hover never fights the sort. */
+.mc-tile--slot:hover {
+  translate: 0 -2px;
+  box-shadow: 0 6px 12px -4px rgba(60, 45, 20, 0.28);
+}
+
+.mc-tile--slot:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 3px;
+}
+
+/* A letter already in its final position: a small quiet hint. */
+.mc-tile.is-in-place::after {
+  content: '';
+  position: absolute;
+  left: 30%;
+  right: 30%;
+  bottom: 5px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--green);
+  opacity: 0.75;
+}
+
+/* The gap left behind while the tile is in your hand. */
+.mc-tile.is-placeholder {
+  background: rgba(120, 100, 60, 0.08);
+  border: 2px dashed rgba(120, 100, 60, 0.35);
+  box-shadow: none;
+  translate: 0 0;
+}
+
+.mc-tile.is-placeholder > *,
+.mc-tile.is-placeholder::after {
+  visibility: hidden;
+}
+
+/* The tile in your hand: lifted, rotated, swinging with velocity (--tilt from useDragTilt). */
+.mc-tile--overlay {
+  cursor: grabbing;
+  transform: rotate(calc(-3deg + var(--tilt, 0deg))) scale(1.1);
+  box-shadow: 0 22px 34px -10px rgba(40, 28, 10, 0.45), 0 6px 12px -4px rgba(40, 28, 10, 0.3);
+  animation: mc-lift 160ms ease-out;
+}
+
+.mc-tile--overlay.is-settling {
+  transform: rotate(0deg) scale(1);
+  box-shadow: 0 2px 4px -1px rgba(60, 45, 20, 0.18);
+  transition: transform var(--spring-ms) var(--spring), box-shadow 220ms ease-out;
+}
+
+/* Solved: tiles lock green and snap one after another. */
+.mc-tile.is-locked {
+  cursor: default;
+  color: #fff;
+  background: linear-gradient(180deg, #3bb35c 0%, var(--green) 100%);
+  border-color: var(--green-deep);
+  transition-delay: calc(var(--i) * 45ms + 90ms);
+  animation: mc-snap 460ms ease-out backwards;
+  animation-delay: calc(var(--i) * 45ms + 90ms);
+}
+
+/* ---------- Finale ---------- */
+
+.mc-finale {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 8px 0 4px;
+  animation: mc-card-in var(--spring-ms) var(--spring) backwards;
+}
+
+.mc-finale__note {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.mc-send {
+  appearance: none;
+  border: 0;
+  border-radius: 14px;
+  padding: 16px 26px;
+  min-height: 52px;
+  background: var(--ink);
+  color: #fff;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 750;
+  cursor: pointer;
+  box-shadow: 0 10px 22px -10px rgba(20, 16, 8, 0.6);
+  transition: translate 150ms, box-shadow 150ms, background-color 150ms;
+}
+
+.mc-send:hover {
+  translate: 0 -2px;
+  background: #000;
+  box-shadow: 0 14px 26px -10px rgba(20, 16, 8, 0.7);
+}
+
+.mc-send:active {
+  translate: 0 1px;
+}
+
+.mc-send:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 3px;
+}
+
+/* ---------- Escape ---------- */
+
+.mc-escape {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: #a39a89;
+}
+
+.mc-escape.is-tried {
+  color: var(--red);
+  animation: mc-nope 380ms ease-out;
+}
+
+/* ---------- Keyframes ---------- */
+
+@keyframes mc-fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes mc-card-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+}
+
+@keyframes mc-deal {
+  from { opacity: 0; transform: translateY(18px) rotate(-6deg) scale(0.8); }
+}
+
+@keyframes mc-lift {
+  from { transform: rotate(0deg) scale(1); }
+}
+
+@keyframes mc-snap {
+  0% { transform: scale(1); }
+  30% { transform: translateY(-7px) scale(1.2); }
+  62% { transform: translateY(1px) scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+@keyframes mc-pulse {
+  0% { box-shadow: var(--shadow-card), 0 0 0 0 rgba(43, 154, 74, 0.55); }
+  100% { box-shadow: var(--shadow-card), 0 0 0 22px rgba(43, 154, 74, 0); }
+}
+
+@keyframes mc-nope {
+  20% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  80% { transform: translateX(-2px); }
+}
+
+/* ---------- Reduced motion: keep every state change, drop the movement. ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-root *,
+  .mc-root *::before,
+  .mc-root *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  .mc-tile--overlay {
+    transform: none;
+  }
+
+  .mc-tile--slot:hover {
+    translate: none;
+  }
+}
